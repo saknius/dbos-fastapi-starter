@@ -1,7 +1,7 @@
 import re
 from fastapi import status
 from typing import Optional
-# from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator
 from fastapi.exceptions import HTTPException
 
 
