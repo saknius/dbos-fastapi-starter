@@ -13,7 +13,6 @@ from middlewares.dbsession_middleware import DBSessionMiddleware
 from middlewares.permission_middleware import PermissionMiddleware
 
 app = FastAPI(title="MLOps Platform")
-DBOS(fastapi=app)
 
 
 # Register the middleware
@@ -27,6 +26,8 @@ app.include_router(user_api_router)
 app.include_router(cluster_api_router)
 app.include_router(deployment_api_router)
 app.include_router(organization_router)
+
+DBOS(fastapi=app)
 
 # Security scheme
 security = HTTPBearer()
