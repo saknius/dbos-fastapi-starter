@@ -33,6 +33,14 @@ def hello_world() -> str:
     return f"{hello}, {world}!"
 
 
+@app.get("/dello")
+@DBOS.workflow()
+def hello_world() -> str:
+    hello = hello_step()
+    world = world_step()
+    return "baksham"
+
+
 # This code uses FastAPI to serve an HTML + CSS readme from the root path.
 
 
