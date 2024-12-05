@@ -1,71 +1,57 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-
+from fastapi.security import HTTPBearer
+from fastapi.openapi.utils import get_openapi
 from dbos import DBOS
 
-# Welcome to DBOS!
-# This is a template application built with DBOS and FastAPI.
 
-app = FastAPI()
+from services.user.routers import user_api_router
+from services.core.routers import core_api_router
+from services.cluster.routers import cluster_api_router
+from services.deployment.routers import deployment_api_router
+from services.organization.router import organization_router
+from middlewares.dbsession_middleware import DBSessionMiddleware
+from middlewares.permission_middleware import PermissionMiddleware
+
+app = FastAPI(title="MLOps Platform")
 DBOS(fastapi=app)
 
-# This is a simple DBOS workflow with two steps.
-# It is served via FastAPI from the /hello endpoint.
-# You can use workflows to build crashproof applications.
-# Learn more here: https://docs.dbos.dev/python/programming-guide
+
+# Register the middleware
+app.add_middleware(PermissionMiddleware)
+app.add_middleware(DBSessionMiddleware)
 
 
-# @DBOS.step()
-def hello_step() -> str:
-    return "Hello"
+# Include routers
+app.include_router(core_api_router)
+app.include_router(user_api_router)
+app.include_router(cluster_api_router)
+app.include_router(deployment_api_router)
+app.include_router(organization_router)
 
+# Security scheme
+security = HTTPBearer()
 
-# @DBOS.step()
-def world_step() -> str:
-    return "world"
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="MLOps Platform",
+        version="1.0.0",
+        description="API documentation for the MLOps platform",
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    # Apply BearerAuth to all endpoints
+    for path in openapi_schema["paths"].values():
+        for method in path.values():
+            method["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
-
-@app.get("/hello")
-# @DBOS.workflow()
-def hello_world() -> str:
-    hello = hello_step()
-    world = world_step()
-    return f"{hello}, {world}!"
-
-
-@app.get("/dello")
-# @DBOS.workflow()
-def hello_world() -> str:
-    hello = hello_step()
-    world = world_step()
-    return "baksham"
-
-
-# This code uses FastAPI to serve an HTML + CSS readme from the root path.
-
-
-@app.get("/")
-def readme() -> HTMLResponse:
-    readme = """
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <title>Welcome to DBOS!</title>
-            <link rel="icon" href="https://dbos-blog-posts.s3.us-west-1.amazonaws.com/live-demo/favicon.ico" type="image/x-icon">
-            <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="font-sans text-gray-800 p-6 max-w-2xl mx-auto">
-            <h1 class="text-xl font-semibold mb-4">Welcome to DBOS!</h1>
-            <p class="mb-4">
-                This is a template built with DBOS and FastAPI. Visit <code class="bg-gray-100 px-1 rounded"><a href="/hello" target="_blank" class="text-blue-600 hover:underline">/hello</a></code> to see a "Hello, World!" message.
-            </p>
-            <p class="mb-4">
-                To start building, edit <code class="bg-gray-100 px-1 rounded">app/main.py</code>, commit your changes, then visit the <a href="https://console.dbos.dev/applications" target="_blank" class="text-blue-600 hover:underline">cloud console</a> to redeploy your app.
-            </p>
-            <p class="mb-4">
-                To learn how to build crashproof apps with DBOS, visit the <a href="https://docs.dbos.dev/python/programming-guide" target="_blank" class="text-blue-600 hover:underline">docs</a>!
-            </p>
-        </body>
-        </html>
-        """
-    return HTMLResponse(readme)
+app.openapi = custom_openapi
