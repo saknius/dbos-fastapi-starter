@@ -15,18 +15,18 @@ DBOS(fastapi=app)
 # Learn more here: https://docs.dbos.dev/python/programming-guide
 
 
-@DBOS.step()
+# @DBOS.step()
 def hello_step() -> str:
     return "Hello"
 
 
-@DBOS.step()
+# @DBOS.step()
 def world_step() -> str:
     return "world"
 
 
 @app.get("/hello")
-@DBOS.workflow()
+# @DBOS.workflow()
 def hello_world() -> str:
     hello = hello_step()
     world = world_step()
@@ -34,7 +34,7 @@ def hello_world() -> str:
 
 
 @app.get("/dello")
-@DBOS.workflow()
+# @DBOS.workflow()
 def hello_world() -> str:
     hello = hello_step()
     world = world_step()
