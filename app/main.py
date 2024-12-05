@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from fastapi.openapi.utils import get_openapi
-from dbos import DBOS
 
 
 from services.user.routers import user_api_router
@@ -27,7 +26,6 @@ app.include_router(cluster_api_router)
 app.include_router(deployment_api_router)
 app.include_router(organization_router)
 
-DBOS(fastapi=app)
 
 # Security scheme
 security = HTTPBearer()

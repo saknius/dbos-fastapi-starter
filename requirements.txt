@@ -1,5 +1,4 @@
 # Application Dependencies
-dbos==0.12.0
 fastapi
 uvicorn
 sqlalchemy
